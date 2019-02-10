@@ -23,10 +23,10 @@ We can identify the user's voice commands and pass them to the Unity game.
 We learned how to make 3D games in Unity and how to use voice recognition to pass in commands.
 
 ## What's next for Voice Race
-Implement Voice Race VR
-Add voice matching features and multi-player mode, so that multiple players can control their own racing car at the same time
+Implement Voice Race VR.
+Add voice matching features and multi-player mode, so that multiple players can control their own racing car at the same time.
 Add more features such as allowing the player to choose the map, car model, car colour, etc.
-Add AI cars so single-players can play with the computer
+Add AI cars so single-players can play with the computer.
 
 
 
