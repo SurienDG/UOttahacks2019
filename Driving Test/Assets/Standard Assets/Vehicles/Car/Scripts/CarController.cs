@@ -67,7 +67,8 @@ namespace UnityStandardAssets.Vehicles.Car
         public float MaxSpeed{ get { return m_Topspeed; } private set { m_Topspeed = value;  } }
         public float Revs { get; private set; }
         public float AccelInput { get; private set; }
-        float accelaration = 0;
+        float lastAcceleration = 0;
+        float acceleration = 0;
         float turning;
         float footbrake;
         float handbrake;
@@ -81,8 +82,8 @@ namespace UnityStandardAssets.Vehicles.Car
             actions.Add("left", Left);
             actions.Add("right", Right);
             actions.Add("back", Back);
-            actions.Add("faster", Faster);
-            actions.Add("slower", Slower);
+            actions.Add("fast", Fast);
+            actions.Add("slow", Slow);
 
             keywordRecognizer = new KeywordRecognizer(actions.Keys.ToArray());
             keywordRecognizer.OnPhraseRecognized += RecognizedSpeech;
@@ -112,34 +113,35 @@ namespace UnityStandardAssets.Vehicles.Car
             if (frameCounter == 0 && turning != 0)
             {
                 turning = 0;
-                accelaration = 0;
+                acceleration = lastAcceleration;
                 handbrake = 0;
-                footbrake = 0;
-            } 
-            Move(turning, accelaration, footbrake, handbrake);
+            }
+            footbrake = acceleration;
+            Move(turning, acceleration, footbrake, handbrake);
         }
 
         private void Forward()
         {
-            MaxSpeed = MaxSpeed + 10;
             frameCounter = 0;
             turning = 0;
-            accelaration = 1.0f;
+            acceleration = 1.0f;
             handbrake = 0;
             footbrake = 0;
         }
         private void Left()
         {
+            lastAcceleration = acceleration;
             frameCounter = 0;
             turning = -0.3f;
-            accelaration = 0;
+            acceleration = 0f;
             handbrake = 0;
             footbrake = 0;
         }
         private void Right()
         {
+            lastAcceleration = acceleration;
             turning = 0.3f;
-            accelaration = 0;
+            acceleration = 0f;
             handbrake = 0;
             footbrake = 0;
 
@@ -148,28 +150,27 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             frameCounter = 0;
             turning = 0;
-            accelaration = -1.0f;
+            acceleration = -1.0f;
             handbrake = 0;
             footbrake = 0;
         }
-        private void Faster()
+        private void Fast()
         {
+            MaxSpeed = MaxSpeed + 10;
             frameCounter = 0;
             turning = 0;
-            accelaration = 1.0f;
             handbrake = 0;
             footbrake = 0;
         }
-        private void Slower()
+        private void Slow()
         {
-            if (MaxSpeed > 0)
+            if (MaxSpeed > 10)
             {
                 MaxSpeed = MaxSpeed - 10;
             }
             
             frameCounter = 0;
             turning = 0;
-            accelaration = 1.0f;
             handbrake = 0;
             footbrake = 0;
 
