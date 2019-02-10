@@ -110,7 +110,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void FixedUpdate()
         {
-            frameCounter = (frameCounter + 1) % 50;
+            frameCounter = (frameCounter + 1) % 40;
             if (frameCounter == 0 && turning != 0)
             {
                 turning = 0;
@@ -148,7 +148,7 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             lastAcceleration = acceleration;
             frameCounter = 0;
-            turning = -0.3f;
+            turning = -0.6f;
             acceleration = 0f;
             handbrake = 0;
             footbrake = 0;
@@ -156,7 +156,7 @@ namespace UnityStandardAssets.Vehicles.Car
         private void Right()
         {
             lastAcceleration = acceleration;
-            turning = 0.3f;
+            turning = 0.6f;
             acceleration = 0f;
             handbrake = 0;
             footbrake = 0;
