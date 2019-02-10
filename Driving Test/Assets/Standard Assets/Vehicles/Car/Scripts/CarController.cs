@@ -64,14 +64,18 @@ namespace UnityStandardAssets.Vehicles.Car
         public float BrakeInput { get; private set; }
         public float CurrentSteerAngle{ get { return m_SteerAngle; }}
         public float CurrentSpeed{ get { return m_Rigidbody.velocity.magnitude*2.23693629f; }}
-        public float MaxSpeed{get { return m_Topspeed; }}
+        public float MaxSpeed{ get { return m_Topspeed; } private set { m_Topspeed = value;  } }
         public float Revs { get; private set; }
         public float AccelInput { get; private set; }
-        float accelaration = 1.0f;
-
+        float accelaration = 0;
+        float turning;
+        float footbrake;
+        float handbrake;
+        float frameCounter = 0;
+        float speed = 0;
 
         // Use this for initialization
-        private void Start()
+        void Start()
         {
             actions.Add("forward", Forward);
             actions.Add("left", Left);
@@ -102,36 +106,72 @@ namespace UnityStandardAssets.Vehicles.Car
             actions[speech.text].Invoke();
         }
 
-        
+        private void FixedUpdate()
+        {
+            frameCounter = (frameCounter + 1) % 50;
+            if (frameCounter == 0 && turning != 0)
+            {
+                turning = 0;
+                accelaration = 0;
+                handbrake = 0;
+                footbrake = 0;
+            } 
+            Move(turning, accelaration, footbrake, handbrake);
+        }
 
         private void Forward()
         {
-            Move(0, accelaration, 0, 0);
+            MaxSpeed = MaxSpeed + 10;
+            frameCounter = 0;
+            turning = 0;
+            accelaration = 1.0f;
+            handbrake = 0;
+            footbrake = 0;
         }
         private void Left()
         {
-            Move(0, accelaration, 0, 0);
+            frameCounter = 0;
+            turning = -0.3f;
+            accelaration = 0;
+            handbrake = 0;
+            footbrake = 0;
         }
         private void Right()
         {
-            Move(0, accelaration, 0, 0);
+            turning = 0.3f;
+            accelaration = 0;
+            handbrake = 0;
+            footbrake = 0;
+
         }
         private void Back()
         {
-            Move(0, -accelaration, 0, 0);
+            frameCounter = 0;
+            turning = 0;
+            accelaration = -1.0f;
+            handbrake = 0;
+            footbrake = 0;
         }
         private void Faster()
         {
-            accelaration += 5;
-            Move(0, accelaration, 0, 0);
+            frameCounter = 0;
+            turning = 0;
+            accelaration = 1.0f;
+            handbrake = 0;
+            footbrake = 0;
         }
         private void Slower()
         {
-            if (accelaration != 0)
+            if (MaxSpeed > 0)
             {
-                accelaration=0;
+                MaxSpeed = MaxSpeed - 10;
             }
-            Move(0, accelaration, 5, 0);
+            
+            frameCounter = 0;
+            turning = 0;
+            accelaration = 1.0f;
+            handbrake = 0;
+            footbrake = 0;
 
         }
 
@@ -237,7 +277,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void CapSpeed()
         {
-            float speed = m_Rigidbody.velocity.magnitude;
+            speed = m_Rigidbody.velocity.magnitude;
             switch (m_SpeedType)
             {
                 case SpeedType.MPH:
