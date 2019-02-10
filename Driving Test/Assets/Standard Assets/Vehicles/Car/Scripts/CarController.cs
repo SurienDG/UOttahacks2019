@@ -1,5 +1,10 @@
 using System;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Windows.Speech;
 
 namespace UnityStandardAssets.Vehicles.Car
 {
@@ -18,6 +23,14 @@ namespace UnityStandardAssets.Vehicles.Car
 
     public class CarController : MonoBehaviour
     {
+        public float forwardForce = 1000f;
+        public float backForce = -1000f;
+        public float leftForce = -500f;
+        public float rightForce = 500f;
+
+        private KeywordRecognizer keywordRecognizer;
+        private Dictionary<string, Action> actions = new Dictionary<string, Action>();
+
         [SerializeField] private CarDriveType m_CarDriveType = CarDriveType.FourWheelDrive;
         [SerializeField] private WheelCollider[] m_WheelColliders = new WheelCollider[4];
         [SerializeField] private GameObject[] m_WheelMeshes = new GameObject[4];
@@ -54,10 +67,22 @@ namespace UnityStandardAssets.Vehicles.Car
         public float MaxSpeed{get { return m_Topspeed; }}
         public float Revs { get; private set; }
         public float AccelInput { get; private set; }
+        float accelaration = 1.0f;
+
 
         // Use this for initialization
         private void Start()
         {
+            actions.Add("forward", Forward);
+            actions.Add("left", Left);
+            actions.Add("right", Right);
+            actions.Add("back", Back);
+            actions.Add("faster", Faster);
+            actions.Add("slower", Slower);
+
+            keywordRecognizer = new KeywordRecognizer(actions.Keys.ToArray());
+            keywordRecognizer.OnPhraseRecognized += RecognizedSpeech;
+            keywordRecognizer.Start();
             m_WheelMeshLocalRotations = new Quaternion[4];
             for (int i = 0; i < 4; i++)
             {
@@ -71,6 +96,44 @@ namespace UnityStandardAssets.Vehicles.Car
             m_CurrentTorque = m_FullTorqueOverAllWheels - (m_TractionControl*m_FullTorqueOverAllWheels);
         }
 
+        private void RecognizedSpeech(PhraseRecognizedEventArgs speech)
+        {
+            Debug.Log(speech.text);
+            actions[speech.text].Invoke();
+        }
+
+        
+
+        private void Forward()
+        {
+            Move(0, accelaration, 0, 0);
+        }
+        private void Left()
+        {
+            Move(0, accelaration, 0, 0);
+        }
+        private void Right()
+        {
+            Move(0, accelaration, 0, 0);
+        }
+        private void Back()
+        {
+            Move(0, -accelaration, 0, 0);
+        }
+        private void Faster()
+        {
+            accelaration += 5;
+            Move(0, accelaration, 0, 0);
+        }
+        private void Slower()
+        {
+            if (accelaration != 0)
+            {
+                accelaration=0;
+            }
+            Move(0, accelaration, 5, 0);
+
+        }
 
         private void GearChanging()
         {
