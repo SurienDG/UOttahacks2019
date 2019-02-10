@@ -2,7 +2,7 @@ Project made by Team Voice Race. uOttaHacks 2019.
 
 ## Try it yourself
 Requires Unity 2018.3.5f1 (32/64-bit).
-DEMO located at: UOttahacks2019/Driving Test/Assets/Driving Test.unity
+DEMO located at: UOttahacks2019/Driving Test with Timer/Assets/Driving Test.unity
 
 ## Our Goal
 According to Statistics Canada, more than 5.3 million Canadians—almost 16% of the population in this country—are living with some form of disability that affects their level of freedom, independence or quality of life. Of that number, over 200,000 are children and youth. Due to their disabilities, a lot of them are unable to enjoy video games. That's why here at Voice Race, we decided to design a game that can bring fun to everyone without the limitation of disabilities.
