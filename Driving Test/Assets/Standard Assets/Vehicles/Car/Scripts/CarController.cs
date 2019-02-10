@@ -63,7 +63,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public bool Skidding { get; private set; }
         public float BrakeInput { get; private set; }
         public float CurrentSteerAngle{ get { return m_SteerAngle; }}
-        public float CurrentSpeed{ get { return m_Rigidbody.velocity.magnitude*2.23693629f; }}
+        public float CurrentSpeed{ get { return m_Rigidbody.velocity.magnitude*2.23693629f; } }
         public float MaxSpeed{ get { return m_Topspeed; } private set { m_Topspeed = value;  } }
         public float Revs { get; private set; }
         public float AccelInput { get; private set; }
@@ -84,6 +84,7 @@ namespace UnityStandardAssets.Vehicles.Car
             actions.Add("back", Back);
             actions.Add("fast", Fast);
             actions.Add("slow", Slow);
+            actions.Add("break", handbrakeFunc);
 
             keywordRecognizer = new KeywordRecognizer(actions.Keys.ToArray());
             keywordRecognizer.OnPhraseRecognized += RecognizedSpeech;
@@ -115,17 +116,32 @@ namespace UnityStandardAssets.Vehicles.Car
                 turning = 0;
                 acceleration = lastAcceleration;
                 handbrake = 0;
-            }
+            } 
             footbrake = acceleration;
             Move(turning, acceleration, footbrake, handbrake);
         }
-
+        private void undoHandBreak()
+        {
+            handbrake = 0;
+            acceleration = -0.01f;
+            Move(turning, acceleration, footbrake, handbrake);
+        }
         private void Forward()
         {
+            undoHandBreak();
             frameCounter = 0;
             turning = 0;
             acceleration = 1.0f;
             handbrake = 0;
+            footbrake = 0;
+        }
+        private void handbrakeFunc()
+        {
+            frameCounter = 0;
+            turning = 0;
+            acceleration = 0;
+            handbrake = 1;
+            acceleration = -.01f;
             footbrake = 0;
         }
         private void Left()
