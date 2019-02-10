@@ -1,5 +1,10 @@
 using System;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Windows.Speech;
 
 namespace UnityStandardAssets.Vehicles.Car
 {
@@ -18,6 +23,14 @@ namespace UnityStandardAssets.Vehicles.Car
 
     public class CarController : MonoBehaviour
     {
+        public float forwardForce = 1000f;
+        public float backForce = -1000f;
+        public float leftForce = -500f;
+        public float rightForce = 500f;
+
+        private KeywordRecognizer keywordRecognizer;
+        private Dictionary<string, Action> actions = new Dictionary<string, Action>();
+
         [SerializeField] private CarDriveType m_CarDriveType = CarDriveType.FourWheelDrive;
         [SerializeField] private WheelCollider[] m_WheelColliders = new WheelCollider[4];
         [SerializeField] private GameObject[] m_WheelMeshes = new GameObject[4];
@@ -50,14 +63,32 @@ namespace UnityStandardAssets.Vehicles.Car
         public bool Skidding { get; private set; }
         public float BrakeInput { get; private set; }
         public float CurrentSteerAngle{ get { return m_SteerAngle; }}
-        public float CurrentSpeed{ get { return m_Rigidbody.velocity.magnitude*2.23693629f; }}
-        public float MaxSpeed{get { return m_Topspeed; }}
+        public float CurrentSpeed{ get { return m_Rigidbody.velocity.magnitude*2.23693629f; } }
+        public float MaxSpeed{ get { return m_Topspeed; } private set { m_Topspeed = value;  } }
         public float Revs { get; private set; }
         public float AccelInput { get; private set; }
+        float lastAcceleration = 0;
+        float acceleration = 0;
+        float turning;
+        float footbrake;
+        float handbrake;
+        float frameCounter = 0;
+        float speed = 0;
 
         // Use this for initialization
-        private void Start()
+        void Start()
         {
+            actions.Add("forward", Forward);
+            actions.Add("left", Left);
+            actions.Add("right", Right);
+            actions.Add("back", Back);
+            actions.Add("fast", Fast);
+            actions.Add("slow", Slow);
+            actions.Add("break", handbrakeFunc);
+
+            keywordRecognizer = new KeywordRecognizer(actions.Keys.ToArray());
+            keywordRecognizer.OnPhraseRecognized += RecognizedSpeech;
+            keywordRecognizer.Start();
             m_WheelMeshLocalRotations = new Quaternion[4];
             for (int i = 0; i < 4; i++)
             {
@@ -71,6 +102,95 @@ namespace UnityStandardAssets.Vehicles.Car
             m_CurrentTorque = m_FullTorqueOverAllWheels - (m_TractionControl*m_FullTorqueOverAllWheels);
         }
 
+        private void RecognizedSpeech(PhraseRecognizedEventArgs speech)
+        {
+            Debug.Log(speech.text);
+            actions[speech.text].Invoke();
+        }
+
+        private void FixedUpdate()
+        {
+            frameCounter = (frameCounter + 1) % 50;
+            if (frameCounter == 0 && turning != 0)
+            {
+                turning = 0;
+                acceleration = lastAcceleration;
+                handbrake = 0;
+            } 
+            footbrake = acceleration;
+            Move(turning, acceleration, footbrake, handbrake);
+        }
+        private void undoHandBreak()
+        {
+            handbrake = 0;
+            acceleration = -0.01f;
+            Move(turning, acceleration, footbrake, handbrake);
+        }
+        private void Forward()
+        {
+            undoHandBreak();
+            frameCounter = 0;
+            turning = 0;
+            acceleration = 1.0f;
+            handbrake = 0;
+            footbrake = 0;
+        }
+        private void handbrakeFunc()
+        {
+            frameCounter = 0;
+            turning = 0;
+            acceleration = 0;
+            handbrake = 1;
+            acceleration = -.01f;
+            footbrake = 0;
+        }
+        private void Left()
+        {
+            lastAcceleration = acceleration;
+            frameCounter = 0;
+            turning = -0.3f;
+            acceleration = 0f;
+            handbrake = 0;
+            footbrake = 0;
+        }
+        private void Right()
+        {
+            lastAcceleration = acceleration;
+            turning = 0.3f;
+            acceleration = 0f;
+            handbrake = 0;
+            footbrake = 0;
+
+        }
+        private void Back()
+        {
+            frameCounter = 0;
+            turning = 0;
+            acceleration = -1.0f;
+            handbrake = 0;
+            footbrake = 0;
+        }
+        private void Fast()
+        {
+            MaxSpeed = MaxSpeed + 10;
+            frameCounter = 0;
+            turning = 0;
+            handbrake = 0;
+            footbrake = 0;
+        }
+        private void Slow()
+        {
+            if (MaxSpeed > 10)
+            {
+                MaxSpeed = MaxSpeed - 10;
+            }
+            
+            frameCounter = 0;
+            turning = 0;
+            handbrake = 0;
+            footbrake = 0;
+
+        }
 
         private void GearChanging()
         {
@@ -174,7 +294,7 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void CapSpeed()
         {
-            float speed = m_Rigidbody.velocity.magnitude;
+            speed = m_Rigidbody.velocity.magnitude;
             switch (m_SpeedType)
             {
                 case SpeedType.MPH:
