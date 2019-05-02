@@ -78,7 +78,7 @@ namespace UnityStandardAssets.Vehicles.Car
         // Use this for initialization
         void Start()
         {
-            actions.Add("forward", Forward);
+            actions.Add("go", Forward);
             actions.Add("left", Left);
             actions.Add("right", Right);
             actions.Add("back", Back);
